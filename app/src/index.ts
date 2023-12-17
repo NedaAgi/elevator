@@ -1,0 +1,41 @@
+import express, { Router } from "express";
+import http from "http";
+import WebSocket from "ws";
+import { liftRoute } from "./routes/lift.routes";
+import { LiftService } from "./services/lift.service";
+
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+const router = Router();
+
+const liftService = new LiftService();
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use("/", liftRoute(router, liftService));
+
+// TODO: resolve Websocket connections
+
+// wss.on("connection", (ws) => {
+//   console.log("Client connected to WebSocket");
+
+//   ws.on("message", (message: string) => {
+//     console.log(`Received: ${message}`);
+//     ws.send(`You sent: ${message}`);
+//   });
+
+//   ws.on("close", () => {
+//     console.log("Client disconnected from WebSocket");
+//   });
+// });
+
+// app.get("/", (req: Request, res: Response) => {
+//   res.send("Hello, WebSocket!");
+// });
+
+const PORT = process.env.PORT || 5000;
+
+server.listen(PORT, () => {
+  console.log(`Server started on http://localhost:${PORT}`);
+});
