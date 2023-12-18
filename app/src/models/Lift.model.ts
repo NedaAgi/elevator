@@ -6,3 +6,4 @@ export type Lift = {
 };
 
 export type FloorNumber = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
