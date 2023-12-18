@@ -1,5 +1,9 @@
 export class Queue<T> {
-  private items: Array<T> = [];
+  public items: Array<T> = [];
+
+  constructor(items: T[] = []) {
+    this.items = [...items];
+  }
 
   enqueue(item: T): void {
     this.items.push(item);
@@ -15,5 +19,9 @@ export class Queue<T> {
 
   isEmpty(): boolean {
     return this.items.length === 0;
+  }
+
+  getAllItems(): T[] {
+    return [...this.items];
   }
 }
