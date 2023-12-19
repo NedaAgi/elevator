@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { LiftCall } from "../models/liftCall.model";
+import { LiftCall } from "../types/LiftCall.type";
 
 export const addLiftCallRequestValidator = Joi.object<LiftCall>({
   position: Joi.number().integer().min(0).max(6).required().messages({
