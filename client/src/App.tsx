@@ -1,8 +1,9 @@
+import { Block } from "./components/Block/Block.component";
 
 function App() {
   return (
     <div>
-      Here will be the application .. 
+      <Block/>
     </div>
   );
 }

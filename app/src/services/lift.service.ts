@@ -1,26 +1,32 @@
-import { CallList } from "../models/callList.model";
-import { FloorNumber, Lift } from "../models/lift.model";
-import { LiftCall } from "../models/liftCall.model";
+import { CallList } from "../types/CallList.type";
+import { FloorNumber, Lift } from "../types/Lift.type";
+import { LiftCall } from "../types/LiftCall.type";
 import { Queue } from "../utils/queue.util";
-import { DEFAULT_STATE } from "../constants/defaultState.const";
-import { LiftIndex } from "../enums/liftIndex.enum";
-import { Direction } from "../enums/direction.enum";
+import { DEFAULT_STATE } from "../constants/DefaultState.const";
+import { LiftIndex } from "../enums/LiftIndex.enum";
+import { Direction } from "../enums/Direction.enum";
 import { CustomError } from "../utils/customError.util";
-import { HttpStatus } from "../enums/httpStatus.enum";
+import { HttpStatus } from "../enums/HttpStatus.enum";
+import { LiftStatus } from "../types/LiftStatus.type";
+import { LiftAlert } from "../types/LiftAlert.type";
 
 export class LiftService {
   private callList: CallList;
-  private liftStatus: Array<Lift>;
-  private liftIsEmpty: Array<boolean>;
+  private liftStatus: LiftStatus;
+  private liftIsAvailable: Array<boolean>;
 
-  private broadcast: (data: any) => void;
+  private broadcast: (data: LiftStatus | LiftAlert) => void;
 
   constructor(broadcast: (data: any) => void) {
     this.callList = new Queue();
     this.liftStatus = DEFAULT_STATE;
-    this.liftIsEmpty = [true, true];
+    this.liftIsAvailable = [true, true];
     this.broadcast = broadcast;
   }
+
+  public broadcastStatusForNewConnections = () => {
+    this.broadcast(this.liftStatus);
+  };
 
   public async registerNewLiftCall(data: LiftCall) {
     try {
@@ -44,8 +50,27 @@ export class LiftService {
   }
 
   private async sendLiftToFinalDestination(data: Lift) {
+    const liftIndex: LiftIndex = data.liftIndex;
+    const destination: FloorNumber = data.destination!;
+
+    this.updateLiftStatus({
+      ...this.liftStatus[liftIndex],
+      destination: destination,
+      available: false,
+    });
+
     await this.moveLift(data.liftIndex, data.destination!);
-    this.liftIsEmpty[data.liftIndex] = true;
+
+    this.updateLiftStatus({
+      ...this.liftStatus[data.liftIndex],
+      position: destination,
+      destination: undefined,
+      available: true,
+    });
+    await new Promise((resolve) => {
+      setTimeout(resolve, 500);
+    });
+    this.liftIsAvailable[data.liftIndex] = true;
     console.log(`lift ${data.liftIndex as LiftIndex} is free.`);
   }
 
@@ -54,28 +79,83 @@ export class LiftService {
       ...this.liftStatus[data.liftIndex],
       ...data,
     };
+
+    this.broadcast(this.liftStatus);
   }
 
   private async handleLiftCall(): Promise<void> {
-    // TODO: refactor and handle lift moving
     const firstLiftCall = this.callList.peek();
     if (firstLiftCall) {
       const liftToServe: number = this.getLiftToServe(firstLiftCall);
       console.log("Selected lift:", liftToServe);
+
       if (liftToServe >= 0) {
-        this.liftIsEmpty[liftToServe] = false;
+        this.liftIsAvailable[liftToServe] = false;
         console.log(`lift ${liftToServe as LiftIndex} is busy.`);
+
         this.callList.dequeue();
         console.log("removed element");
-        await this.moveLift(liftToServe, firstLiftCall.position);
+
+        const destination: FloorNumber = firstLiftCall.position;
+        this.updateLiftStatus({
+          ...this.liftStatus[liftToServe],
+          destination: destination,
+          available: false,
+        });
+        if (destination !== this.liftStatus[liftToServe].position) {
+          await this.moveLift(liftToServe, destination);
+          this.updateLiftStatus({
+            ...this.liftStatus[liftToServe],
+            available: false,
+            position: destination,
+          });
+        }
+        this.handleLiftWaiting(liftToServe);
       }
       this.triggerHandleLiftCalls();
     }
   }
 
+  private handleLiftWaiting = async (liftIndex: LiftIndex) => {
+    await new Promise((resolve) => {
+      setTimeout(resolve, 5000);
+    });
+    // after 5 seconds the lift will be alerted
+    if (this.isLiftWaiting(liftIndex)) {
+      this.broadcast({
+        liftIndex: liftIndex,
+        alertMessage: "Time is almost up!",
+      });
+      console.log(
+        `destination not selected for lift ${liftIndex as LiftIndex}, alert!`
+      );
+      await new Promise((resolve) => {
+        setTimeout(resolve, 3000);
+      });
+      //after 3 more seconds the lift will become available
+      if (this.isLiftWaiting(liftIndex)) {
+        this.liftIsAvailable[liftIndex] = true;
+        this.updateLiftStatus({
+          ...this.liftStatus[liftIndex],
+          destination: undefined,
+          available: true,
+        });
+      }
+    }
+  };
+
+  private isLiftWaiting = (liftIndex: LiftIndex): boolean => {
+    return (
+      this.liftStatus[liftIndex].position ===
+        this.liftStatus[liftIndex].destination &&
+      !this.liftIsAvailable[liftIndex]
+    );
+  };
+
   private triggerHandleLiftCalls() {
     if (
-      (this.liftIsEmpty[LiftIndex.A] || this.liftIsEmpty[LiftIndex.B]) &&
+      (this.liftIsAvailable[LiftIndex.A] ||
+        this.liftIsAvailable[LiftIndex.B]) &&
       !this.callList.isEmpty()
     ) {
       this.handleLiftCall();
@@ -89,46 +169,33 @@ export class LiftService {
   }
 
   private async moveLift(liftToServe: LiftIndex, destination: FloorNumber) {
-    this.updateLiftStatus({
-      ...this.liftStatus[liftToServe],
-      destination: destination,
-      isInMovement: true,
-    });
-    // TODO: broadcast change
-    this.broadcast(this.liftStatus);
     const distance = destination - this.liftStatus[liftToServe].position;
     const movingDirection: Direction = Math.sign(distance) as Direction;
-    for (let floor = 0; floor < Math.abs(distance); floor++) {
+    for (let floor = 0; floor < Math.abs(distance) - 1; floor++) {
       const newPosition: FloorNumber = (this.liftStatus[liftToServe].position +
         movingDirection) as FloorNumber;
       this.updateLiftStatus({
         ...this.liftStatus[liftToServe],
         position: newPosition,
       });
-      // TODO: broadcast position change
-      this.broadcast(this.liftStatus);
       console.log(
         `Lift  ${liftToServe as LiftIndex} moving: `,
         this.liftStatus[liftToServe]
       );
       await new Promise((resolve) => {
-        setTimeout(resolve, 3000);
+        setTimeout(resolve, 2000);
       });
     }
-    this.updateLiftStatus({
-      ...this.liftStatus[liftToServe],
-      destination: undefined,
-      isInMovement: false,
-    });
-    // TODO: broadcast change
-    this.broadcast(this.liftStatus);
 
     console.log(`Lift  ${liftToServe as LiftIndex} arrived`);
   }
 
   private getLiftToServe(liftCall: LiftCall): number {
     // refactor, create distance arrays
-    if (this.liftIsEmpty[LiftIndex.A] && this.liftIsEmpty[LiftIndex.B]) {
+    if (
+      this.liftIsAvailable[LiftIndex.A] &&
+      this.liftIsAvailable[LiftIndex.B]
+    ) {
       const distanceFromA =
         liftCall.position - this.liftStatus[LiftIndex.A].position;
       const distanceFromB =
@@ -148,9 +215,9 @@ export class LiftService {
           return 1;
         }
       }
-    } else if (this.liftIsEmpty[LiftIndex.A]) {
+    } else if (this.liftIsAvailable[LiftIndex.A]) {
       return 0;
-    } else if (this.liftIsEmpty[LiftIndex.B]) {
+    } else if (this.liftIsAvailable[LiftIndex.B]) {
       return 1;
     } else {
       return -1;
@@ -158,13 +225,6 @@ export class LiftService {
   }
 
   private checkLiftData(data: Lift): void {
-    if (this.liftStatus[data.liftIndex].isInMovement) {
-      throw new CustomError(
-        HttpStatus.INTERNAL_SERVER,
-        "Destination already selected."
-      );
-    }
-
     if (data.position !== this.liftStatus[data.liftIndex].position) {
       throw new CustomError(
         HttpStatus.INTERNAL_SERVER,

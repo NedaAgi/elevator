@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { Lift } from "../models/lift.model";
+import { Lift } from "../types/Lift.type";
 
 export const updateLiftStatusRequestValidator = Joi.object<Lift>({
   liftIndex: Joi.number().integer().min(0).max(1).required().messages({
@@ -10,8 +10,5 @@ export const updateLiftStatusRequestValidator = Joi.object<Lift>({
   }),
   destination: Joi.number().integer().min(0).max(6).required().messages({
     "any.required": "The destination attribute is required",
-  }),
-  isInMovement: Joi.boolean().required().messages({
-    "any.required": "The isInMovement attribute is required",
   }),
 });

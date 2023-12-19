@@ -1,10 +1,10 @@
 import { Router, Request, Response } from "express";
-import { LiftService } from "../services/lift.service";
-import { LiftCall } from "../models/liftCall.model";
-import { Lift } from "../models/lift.model";
-import { addLiftCallRequestValidator } from "../validators/addLiftCall.validator";
-import { updateLiftStatusRequestValidator } from "../validators/updateLiftStatus.validator";
-import { HttpStatus } from "../enums/httpStatus.enum";
+import { LiftService } from "../services/Lift.service";
+import { LiftCall } from "../types/LiftCall.type";
+import { Lift } from "../types/Lift.type";
+import { addLiftCallRequestValidator } from "../validators/AddLiftCall.validator";
+import { updateLiftStatusRequestValidator } from "../validators/UpdateLiftStatus.validator";
+import { HttpStatus } from "../enums/HttpStatus.enum";
 import { CustomError } from "../utils/customError.util";
 
 export const liftRoute = (router: Router, liftService: LiftService) => {
@@ -27,7 +27,6 @@ export const liftRoute = (router: Router, liftService: LiftService) => {
       const result = updateLiftStatusRequestValidator.validate({
         liftIndex: req.body.liftIndex,
         position: req.body.position,
-        isInMovement: req.body.isInMovement,
         destination: req.body.destination,
       });
       if (result.error) {

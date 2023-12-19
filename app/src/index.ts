@@ -1,26 +1,18 @@
 import express, { Router, Request, Response, NextFunction } from "express";
 import http from "http";
 import WebSocket from "ws";
-import { liftRoute } from "./routes/lift.routes";
-import { LiftService } from "./services/lift.service";
-import { HttpStatus } from "./enums/httpStatus.enum";
+import { liftRoute } from "./routes/Lift.routes";
+import { LiftService } from "./services/Lift.service";
+import { HttpStatus } from "./enums/HttpStatus.enum";
 import { CustomError } from "./utils/customError.util";
+import cors from "cors";
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-// TODO: resolve Websocket connections
-wss.on("connection", (ws) => {
-  console.log("Client connected to WebSocket");
-
-  ws.on("close", () => {
-    console.log("Client disconnected from WebSocket");
-  });
-});
-
 const broadcast = (data: any) => {
-  wss.clients.forEach((client) => client.send(data));
+  wss.clients.forEach((client) => client.send(JSON.stringify(data)));
 };
 
 app.get("/", (_req: Request, res: Response) => {
@@ -29,9 +21,19 @@ app.get("/", (_req: Request, res: Response) => {
 
 const liftService = new LiftService(broadcast);
 
+wss.on("connection", (ws) => {
+  console.log("Client connected to WebSocket");
+  liftService.broadcastStatusForNewConnections();
+
+  ws.on("close", () => {
+    console.log("Client disconnected from WebSocket");
+  });
+});
+
 const router = Router();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cors());
 app.use("/api", liftRoute(router, liftService));
 
 app.use((_req: Request, res: Response) => {
