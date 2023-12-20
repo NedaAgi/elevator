@@ -1,13 +1,17 @@
 import { Router, Request, Response } from "express";
-import { LiftService } from "../services/Lift.service";
 import { LiftCall } from "../types/LiftCall.type";
 import { Lift } from "../types/Lift.type";
-import { addLiftCallRequestValidator } from "../validators/AddLiftCall.validator";
-import { updateLiftStatusRequestValidator } from "../validators/UpdateLiftStatus.validator";
+import { CustomError } from "../utils/CustomError.util";
+import loggerMiddleware from "../utils/LoggerMiddleware.util";
+import { LiftService } from "../services/lift.service";
 import { HttpStatus } from "../enums/HttpStatus.enum";
-import { CustomError } from "../utils/customError.util";
+import { addLiftCallRequestValidator } from "../validators/addLiftCall.validator";
+import { updateLiftStatusRequestValidator } from "../validators/updateLiftStatus.validator";
 
 export const liftRoute = (router: Router, liftService: LiftService) => {
+  const middleware = loggerMiddleware();
+  router.use(middleware);
+
   router.post("/lift/call", async (req: Request, res: Response) => {
     try {
       const result = addLiftCallRequestValidator.validate(req.body);

@@ -1,0 +1,14 @@
+@import "./styles/color.style.css";
+
+body {
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.text {
+  font-size: 18px;
+  font-weight: bold;
+}

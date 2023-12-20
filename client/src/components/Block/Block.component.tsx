@@ -43,14 +43,20 @@ export const Block: FC = () => {
   if (liftStatus && liftStatus.length === 2) {
     return (
       <StyledBlock className="block">
-        {floorIndexList.map((_, index) => (
-          <Floor
-            key={index}
-            index={index as FloorNumber}
-            liftStatus={liftStatus}
-            liftAlert={liftAlert}
-          />
-        ))}
+        <div className="lift-names text">
+          <div>A</div>
+          <div>B</div>
+        </div>
+        <div className="floor-list">
+          {floorIndexList.map((_, floorIndex) => (
+            <Floor
+              key={floorIndex}
+              floorIndex={floorIndex as FloorNumber}
+              liftStatus={liftStatus}
+              liftAlert={liftAlert}
+            />
+          ))}
+        </div>
       </StyledBlock>
     );
   } else {

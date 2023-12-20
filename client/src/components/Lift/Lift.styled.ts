@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { MOBILE_BREAKPOINT } from "../../styles/Breakpoints.conts";
 
 export const StyledLift = styled.div`
   &.lift {
@@ -7,21 +8,23 @@ export const StyledLift = styled.div`
     justify-content: flex-start;
     align-items: center;
     gap: 16px;
-    margin: 20px 0;
+    padding: 6px;
     width: 100%;
-    height: 80px;
-    background-color: #d9d9d9;
+    height: 100%;
+    min-height: 80px;
+    background-color: var(--silver-stone);
     border-radius: 4px;
+    animation: fadeIn 0.5s ease-in-out;
 
     &.free {
-      background-color: #418748;
+      background-color: var(--forest-green);
     }
 
     &.alert {
-      background-color: #a46f21;
+      background-color: var(--amber-bronze);
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: ${MOBILE_BREAKPOINT}) {
       height: 100%;
       justify-content: center;
       align-items: center;
@@ -30,6 +33,15 @@ export const StyledLift = styled.div`
       .hide-on-mobile {
         display: none;
       }
+    }
+  }
+
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
     }
   }
 `;
