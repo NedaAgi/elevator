@@ -21,7 +21,7 @@ export const StyledLift = styled.div`
     }
 
     &.alert {
-      background-color: var(--amber-bronze);
+      background-color: var(--dark-rust);
     }
 
     @media (max-width: ${MOBILE_BREAKPOINT}) {

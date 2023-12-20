@@ -9,18 +9,18 @@ import { LiftStatus } from "../../types/LiftStatus.type";
 import { LiftIndex } from "../../enums/LiftIndex.enum";
 import { LiftCall } from "../../types/LiftCall.type";
 import { ApiService } from "../../services/api.service";
-import { LiftAlert } from "../../types/LiftAlert.type";
+import { LiftAlertStatus } from "../../types/LiftAlertStatus.type";
 
 export type FloorProps = {
   floorIndex: FloorNumber;
   liftStatus: LiftStatus;
-  liftAlert?: LiftAlert;
+  liftAlertStatus?: LiftAlertStatus;
 };
 
 export const Floor: FC<FloorProps> = ({
   floorIndex,
   liftStatus,
-  liftAlert,
+  liftAlertStatus,
 }) => {
   const getLiftDirection = (liftIndex: LiftIndex): Direction => {
     const destination: FloorNumber | undefined =
@@ -62,7 +62,7 @@ export const Floor: FC<FloorProps> = ({
         {liftStatus[LiftIndex.A]?.position === floorIndex && (
           <Lift
             liftData={liftStatus[LiftIndex.A]}
-            isAlertOn={liftAlert?.liftIndex === LiftIndex.A}
+            isAlertOn={!!liftAlertStatus?.[LiftIndex.A]?.alertMessage}
           />
         )}
       </div>
@@ -74,7 +74,7 @@ export const Floor: FC<FloorProps> = ({
         {liftStatus[LiftIndex.B]?.position === floorIndex && (
           <Lift
             liftData={liftStatus[LiftIndex.B]}
-            isAlertOn={liftAlert?.liftIndex === LiftIndex.B}
+            isAlertOn={!!liftAlertStatus?.[LiftIndex.B]?.alertMessage}
           />
         )}
       </div>

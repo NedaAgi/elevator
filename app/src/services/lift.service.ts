@@ -16,7 +16,7 @@ export class LiftService {
   private liftStatus: LiftStatus;
   private liftIsAvailable: Array<boolean>;
 
-  private broadcast: (data: LiftStatus | LiftAlert) => void;
+  private broadcast: (data: Lift | LiftAlert) => void;
 
   constructor(broadcast: (data: any) => void) {
     this.callList = new Queue();
@@ -26,7 +26,8 @@ export class LiftService {
   }
 
   public broadcastStatusForNewConnections = () => {
-    this.broadcast(this.liftStatus);
+    this.broadcast(this.liftStatus[LiftIndex.A]);
+    this.broadcast(this.liftStatus[LiftIndex.B]);
   };
 
   public async registerNewLiftCall(data: LiftCall) {
@@ -125,7 +126,7 @@ export class LiftService {
       ...data,
     };
 
-    this.broadcast(this.liftStatus);
+    this.broadcast(this.liftStatus[data.liftIndex]);
   }
 
   private handleLiftWaiting = async (liftIndex: LiftIndex) => {
@@ -152,6 +153,10 @@ export class LiftService {
           destination: undefined,
           available: true,
         });
+
+        CustomLogger.logInfo(
+          `Time is up, lift ${liftIndex as LiftIndex} available!`
+        );
       }
     }
   };
@@ -175,9 +180,9 @@ export class LiftService {
         position: newPosition,
       });
       CustomLogger.logInfo(
-        `Lift  ${liftToServe as LiftIndex} moving to: ${
+        `Lift  ${liftToServe as LiftIndex} moving to: ${JSON.stringify(
           this.liftStatus[liftToServe]
-        }`
+        )}`
       );
       await new Promise((resolve) => {
         setTimeout(resolve, 2000);
