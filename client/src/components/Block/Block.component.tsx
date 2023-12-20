@@ -3,14 +3,17 @@ import { StyledBlock } from "./Block.styled";
 import { Floor } from "../Floor/Floor.component";
 import { FloorNumber } from "../../types/FloorNumber.type";
 import { floorIndexList } from "../../utils/consts/FloorIndexList.const";
-import { LiftAlert } from "../../types/LiftAlert.type";
 import { LiftStatus } from "../../types/LiftStatus.type";
+import { LiftIndex } from "../../enums/LiftIndex.enum";
+import { LiftAlert } from "../../types/LiftAlert.type";
+import { LiftData } from "../../types/LiftData.type";
+import { LiftAlertStatus } from "../../types/LiftAlertStatus.type";
 
 const WS_URL = "ws://localhost:5000";
 
 export const Block: FC = () => {
   const [liftStatus, setLiftStatus] = useState<LiftStatus>([]);
-  const [liftAlert, setLiftAlert] = useState<LiftAlert>();
+  const [liftAlertStatus, setLiftAlertStatus] = useState<LiftAlertStatus>([]);
 
   useEffect(() => {
     const ws = new WebSocket(WS_URL);
@@ -21,12 +24,11 @@ export const Block: FC = () => {
     ws.onmessage = (event) => {
       const response = JSON.parse(event.data);
       if (!response.alertMessage) {
-        setLiftStatus(response);
-        if (response.liftIndex === liftAlert?.liftIndex) {
-          setLiftAlert(undefined);
-        }
+        const liftIndex: LiftIndex = response.liftIndex;
+        changeLiftStatus(liftIndex, response);
+        changeLiftAlert(liftIndex, undefined);
       } else {
-        setLiftAlert(response);
+        changeLiftAlert(response.liftIndex, response);
       }
     };
     ws.onclose = () => {
@@ -38,19 +40,42 @@ export const Block: FC = () => {
     };
   }, []);
 
-  if (liftAlert?.liftIndex) console.log(liftAlert);
+  const changeLiftAlert = (
+    liftIndex: LiftIndex,
+    data: LiftAlert | undefined
+  ) => {
+    setLiftAlertStatus((prevState) => {
+      const newState = [...prevState];
+      newState[liftIndex] = data;
+      return newState;
+    });
+  };
+
+  const changeLiftStatus = (liftIndex: LiftIndex, data: LiftData) => {
+    setLiftStatus((prevState) => {
+      const newState = [...prevState];
+      newState[liftIndex] = data;
+      return newState;
+    });
+  };
 
   if (liftStatus && liftStatus.length === 2) {
     return (
       <StyledBlock className="block">
-        {floorIndexList.map((_, index) => (
-          <Floor
-            key={index}
-            index={index as FloorNumber}
-            liftStatus={liftStatus}
-            liftAlert={liftAlert}
-          />
-        ))}
+        <div className="lift-names text">
+          <div>A</div>
+          <div>B</div>
+        </div>
+        <div className="floor-list">
+          {floorIndexList.map((_, floorIndex) => (
+            <Floor
+              key={floorIndex}
+              floorIndex={floorIndex as FloorNumber}
+              liftStatus={liftStatus}
+              liftAlertStatus={liftAlertStatus}
+            />
+          ))}
+        </div>
       </StyledBlock>
     );
   } else {

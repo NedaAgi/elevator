@@ -1,11 +1,12 @@
 import express, { Router, Request, Response, NextFunction } from "express";
 import http from "http";
 import WebSocket from "ws";
-import { liftRoute } from "./routes/Lift.routes";
-import { LiftService } from "./services/Lift.service";
+import { liftRoute } from "./routes/lift.routes";
+import { LiftService } from "./services/lift.service";
 import { HttpStatus } from "./enums/HttpStatus.enum";
-import { CustomError } from "./utils/customError.util";
+import { CustomError } from "./utils/CustomError.util";
 import cors from "cors";
+import { CustomLogger } from "./utils/CustomLogger.util";
 
 const app = express();
 const server = http.createServer(app);
@@ -22,11 +23,11 @@ app.get("/", (_req: Request, res: Response) => {
 const liftService = new LiftService(broadcast);
 
 wss.on("connection", (ws) => {
-  console.log("Client connected to WebSocket");
+  CustomLogger.logInfo("Client connected to WebSocket");
   liftService.broadcastStatusForNewConnections();
 
   ws.on("close", () => {
-    console.log("Client disconnected from WebSocket");
+    CustomLogger.logInfo("Client disconnected from WebSocket");
   });
 });
 

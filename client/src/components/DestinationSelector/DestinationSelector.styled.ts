@@ -16,17 +16,17 @@ export const StyledDestinationSelector = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #2c61a0;
-    color: #e7e3e3;
+    background-color: var(--deep-blue-sea);
+    color: var(--pearl-white);
     cursor: pointer;
     transition: background-color 0.2s ease-in-out;
 
     &:hover {
-      background-color: #335b8b;
+      background-color: var(--marine-blue);
     }
 
     &:active {
-      background-color: #4e74a1;
+      background-color: var(--slate-gray-blue);
     }
   }
 `;

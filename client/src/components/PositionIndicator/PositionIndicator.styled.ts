@@ -14,11 +14,11 @@ export const StyledPositionIndicator = styled.div`
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background-color: #3a3535;
+    background-color: var(--charcoal-gray);
     transition: background-color 0.2s ease-in-out;
 
     &.active {
-      background-color: #c5b043;
+      background-color: var(--golden-leaf);
     }
   }
 `;

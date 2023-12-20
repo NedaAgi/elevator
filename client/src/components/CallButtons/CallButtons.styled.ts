@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { MOBILE_BREAKPOINT } from "../../styles/Breakpoints.conts";
 
 export const StyledCallButtons = styled.div`
   &.call-buttons {
@@ -8,35 +9,49 @@ export const StyledCallButtons = styled.div`
     align-items: center;
     gap: 10px;
     padding: 4px;
-  }
 
-  .button {
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    background-color: #2c61a0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
+    .button {
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background-color: var(--deep-blue-sea);
+      transition: background-color 0.2s ease-in-out;
 
-    &:hover {
-      background-color: #335b8b;
-    }
+      &:hover {
+        background-color: var(--marine-blue);
+      }
 
-    &:active {
-      background-color: #4e74a1;
-    }
+      &:active {
+        background-color: var(--slate-gray-blue);
+      }
 
-    svg {
-      width: 12px;
-      height: 12px;
-    }
-
-    &.down {
       svg {
-        rotate: 180deg;
+        width: 12px;
+        height: 12px;
+      }
+
+      &.down {
+        svg {
+          rotate: 180deg;
+        }
+      }
+    }
+
+    @media (max-width: ${MOBILE_BREAKPOINT}) {
+      gap: 6px;
+
+      .button {
+        width: 22px;
+        height: 22px;
+
+        svg {
+          width: 8px;
+          height: 8px;
+        }
       }
     }
   }

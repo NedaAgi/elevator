@@ -9,32 +9,44 @@ import { LiftStatus } from "../../types/LiftStatus.type";
 import { LiftIndex } from "../../enums/LiftIndex.enum";
 import { LiftCall } from "../../types/LiftCall.type";
 import { ApiService } from "../../services/api.service";
-import { LiftAlert } from "../../types/LiftAlert.type";
+import { LiftAlertStatus } from "../../types/LiftAlertStatus.type";
 
 export type FloorProps = {
-  index: FloorNumber;
+  floorIndex: FloorNumber;
   liftStatus: LiftStatus;
-  liftAlert?: LiftAlert;
+  liftAlertStatus?: LiftAlertStatus;
 };
 
-export const Floor: FC<FloorProps> = ({ index, liftStatus, liftAlert }) => {
-  const getLiftDirection = (index: LiftIndex): Direction => {
-    const destination: FloorNumber | undefined = liftStatus[index].destination;
-    if (destination === undefined) {
-      return Direction.IN_PLACE;
-    } else {
-      if (liftStatus[index].position - destination > 0) {
-        return Direction.DOWN;
+export const Floor: FC<FloorProps> = ({
+  floorIndex,
+  liftStatus,
+  liftAlertStatus,
+}) => {
+  const getLiftDirection = (liftIndex: LiftIndex): Direction => {
+    const destination: FloorNumber | undefined =
+      liftStatus[liftIndex].destination;
+    if (destination !== undefined) {
+      const distance: number = liftStatus[liftIndex].position - destination;
+      if (!distance) {
+        // destination was not yet selected
+        return Direction.IN_PLACE;
       } else {
-        return Direction.UP;
+        if (distance > 0) {
+          return Direction.DOWN;
+        } else {
+          return Direction.UP;
+        }
       }
+    } else {
+      // lift is available
+      return Direction.IN_PLACE;
     }
   };
 
   const handleLiftCall = async (direction: Direction) => {
     const liftCall: LiftCall = {
       direction: direction,
-      position: index,
+      position: floorIndex,
     };
     try {
       await ApiService.createLiftCall(liftCall);
@@ -45,28 +57,28 @@ export const Floor: FC<FloorProps> = ({ index, liftStatus, liftAlert }) => {
 
   return (
     <StyledFloor className="floor">
-      <div className="floor-number">{index ? index : "P"}</div>
-      <div>
-        <ArrowIndicator direction={getLiftDirection(LiftIndex.A)} />
-        <div className="lift-container">
-          {liftStatus[LiftIndex.A]?.position === index && (
-            <Lift
-              liftData={liftStatus[LiftIndex.A]}
-              isAlertOn={liftAlert?.liftIndex === LiftIndex.A}
-            />
-          )}
-        </div>
-        <CallButtons onCallButtonClicked={handleLiftCall} />
-        <div className="lift-container">
-          {liftStatus[LiftIndex.B]?.position === index && (
-            <Lift
-              liftData={liftStatus[LiftIndex.B]}
-              isAlertOn={liftAlert?.liftIndex === LiftIndex.B}
-            />
-          )}
-        </div>
-        <ArrowIndicator direction={getLiftDirection(LiftIndex.B)} />
+      <ArrowIndicator direction={getLiftDirection(LiftIndex.A)} />
+      <div className="lift-container">
+        {liftStatus[LiftIndex.A]?.position === floorIndex && (
+          <Lift
+            liftData={liftStatus[LiftIndex.A]}
+            isAlertOn={!!liftAlertStatus?.[LiftIndex.A]?.alertMessage}
+          />
+        )}
       </div>
+      <div className="floor-center">
+        <div className="text">{floorIndex ? floorIndex : "P"}</div>
+        <CallButtons onCallButtonClicked={handleLiftCall} />
+      </div>
+      <div className="lift-container">
+        {liftStatus[LiftIndex.B]?.position === floorIndex && (
+          <Lift
+            liftData={liftStatus[LiftIndex.B]}
+            isAlertOn={!!liftAlertStatus?.[LiftIndex.B]?.alertMessage}
+          />
+        )}
+      </div>
+      <ArrowIndicator direction={getLiftDirection(LiftIndex.B)} />
     </StyledFloor>
   );
 };
