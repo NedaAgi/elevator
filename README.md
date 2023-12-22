@@ -15,8 +15,6 @@ This simulation models a building with two lifts located initially on the first 
 
 ### Floor & Lift Interactions
 
-On each floor, users interact with lifts using clear up and down buttons. Real-time indicators provide visibility into lift movements, ensuring users are informed.
-
 On each floor, users interact with lifts using clear up and down buttons. Real-time indicators provide visibility into lift movements, ensuring users are informed. Inside each lift, a control panel displays the current location and allows users to select destinations. Destination selection is only enabled when the lift arrives at the called floor.
 
 A unique feature triggers an alert state when a lift is called without a destination. After 5 seconds, the lift enters an alert state and becomes available again after an additional 3 seconds.
@@ -40,7 +38,7 @@ In implementing this project, various technologies were utilized to ensure a rob
 
 The backend, powered by **Node.js**, incorporates **TypeScript** and the **Express framework** for efficient handling of HTTP requests and backend logic. On the frontend, **React** is applied alongside **TypeScript** to create responsive and interactive user interfaces.
 
-For seamless communication between components, the project employs distinct protocols. The **REST API** is utilized for user interactions, such as calling lifts and selecting destinations, providing a standardized approach for data exchange between the client and server.
+For seamless communication between components, the project employs distinct protocols. The **REST API** is utilized for user interactions, such as calling lifts and selecting destinations, providing a standardized approach for data exchange between the client and server. Real-time updates for lift status changes are facilitated through **WebSocket** communication. This enables the server to notify the client efficiently.
 
 This combination of technologies and communication protocols ensures a dynamic and responsive user experience.
 
