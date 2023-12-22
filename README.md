@@ -21,11 +21,11 @@ A unique feature triggers an alert state when a lift is called without a destina
 
 <div style="display: flex; justify-content: space-between;">
   <div style="flex: 1;">
-    <img src="images/elevator1.jpg" alt="Lift states: moving (A) & available (B)" width="500" />
+    <img src="images/elevator1.jpg" alt="Lift states: moving (A) & available (B)" />
 
   </div>
   <div style="flex: 1; margin-left: 20px;">
-    <img src="images/elevator2.jpg" alt="Lift states: waiting (A) & alerted (B)" width="500" height=/>
+    <img src="images/elevator2.jpg" alt="Lift states: waiting (A) & alerted (B)"/>
 
   </div>
 </div>
